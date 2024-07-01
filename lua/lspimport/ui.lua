@@ -5,7 +5,14 @@ local SELECTABLE_NAMESPACE = 2
 
 ---@param item any
 local format_import = function(item)
-    local label = item.user_data.nvim.lsp.completion_item.labelDetails.description or item.user_data.nvim.lsp.completion_item.label
+    local labelDetails = item.user_data.nvim.lsp.completion_item.labelDetails
+    local label = ""
+    if labelDetails == nil then
+        label = item.user_data.nvim.lsp.completion_item.label
+    else
+        label = labelDetails.description
+    end
+
     return label .. " [" .. item.kind .. "]"
 end
 
