@@ -1,4 +1,5 @@
 local servers = require("lspimport.servers")
+local ui = require("lspimport.ui")
 
 local LspImport = {}
 
@@ -74,62 +75,6 @@ local resolve_import = function(item, bufnr)
     vim.lsp.util.apply_text_edits(text_edits, bufnr, "utf-8")
 end
 
----@param item any
-local format_import = function(item)
-    return item.abbr .. " " .. item.kind .. " " .. item.user_data.nvim.lsp.completion_item.labelDetails.description
-end
-
----@param items_text table[string]
----@return integer
-local create_floating_window = function(items_text)
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, items_text)
-
-    local width = 0
-    for _, text in ipairs(items_text) do
-        local length = #text
-        if length > width then
-            width = length
-        end
-    end
-
-    local height = #items_text
-
-    local opts = {
-        style = "minimal",
-        relative = "cursor",
-        width = width,
-        height = height,
-        row = 1,
-        col = 3,
-    }
-
-    vim.api.nvim_open_win(buf, true, opts)
-    return buf
-end
-
----@param items table[]
----@param bufnr integer
-local handle_floating_window_selection = function(items, bufnr)
-    local buf = vim.api.nvim_get_current_buf()
-
-    -- Set up Enter key mapping
-    vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", "", {
-        noremap = true,
-        silent = true,
-        callback = function()
-            local cursor_pos = vim.api.nvim_win_get_cursor(0)
-            local line = cursor_pos[1]
-            local selected_item = items[line]
-            if selected_item then
-                print("Selected item: " .. selected_item.abbr)
-                resolve_import(selected_item, bufnr)
-                vim.api.nvim_win_close(0, true)
-            end
-        end,
-    })
-end
-
 ---@param server lspimport.Server
 ---@param result lsp.CompletionList|lsp.CompletionItem[] Result of `textDocument/completion`
 ---@param unresolved_import string
@@ -147,9 +92,9 @@ local lsp_completion_handler = function(server, result, unresolved_import, bufnr
     if #items == 1 then
         resolve_import(items[1], bufnr)
     else
-        local item_texts = vim.tbl_map(format_import, items)
-        create_floating_window(item_texts)
-        handle_floating_window_selection(items, bufnr)
+        local item_texts = ui.create_items_text_with_header(items, unresolved_import)
+        ui.create_floating_window(item_texts)
+        ui.handle_floating_window_selection(items, bufnr, resolve_import)
     end
 end
 
