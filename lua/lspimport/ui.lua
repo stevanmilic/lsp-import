@@ -5,7 +5,8 @@ local SELECTABLE_NAMESPACE = 2
 
 ---@param item any
 local format_import = function(item)
-    return item.user_data.nvim.lsp.completion_item.labelDetails.description .. " [" .. item.kind .. "]"
+    local label = item.user_data.nvim.lsp.completion_item.labelDetails.description or item.user_data.nvim.lsp.completion_item.label
+    return label .. " [" .. item.kind .. "]"
 end
 
 ---@param items table[]
@@ -21,7 +22,7 @@ end
 
 ---@param items_text table[string]
 ---@return integer
- M.create_floating_window = function(items_text)
+M.create_floating_window = function(items_text)
     local buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, items_text)
 
