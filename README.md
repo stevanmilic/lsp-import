@@ -18,7 +18,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 Mappings are not set by default, hence it's required to set a mapping for resolving import:
 
 ```lua
-vim.keymap.set("n", "<leader>a", require("lspimport").import, { noremap = true })
+vim.keymap.set("n", "<leader>a", function() require("lspimport").import() end, { noremap = true })
 ```
 
 Once mapping is set, jump on the line with an undefined term and execute
